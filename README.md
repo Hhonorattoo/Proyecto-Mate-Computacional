@@ -25,10 +25,8 @@ El código se estructuró en tres módulos fundamentales para asegurar su legibi
 *   `pre.py`: Editor interactivo donde el usuario define manualmente las conexiones y valida el grafo.
 *   `algoritmo.py`: Contiene el motor matemático y controla los pasos de ejecución y el panel lateral informativo.
 
-*(Nota para el informe: Las figuras del código y capturas de pantalla de la interfaz deben presentarse con el formato APA, incluyendo número, título y nota)*[cite: 6].
-
 ## 4. Diagrama de Flujo
-*(En este apartado de tu informe deberás insertar la imagen de tu diagrama de flujo. Asegúrate de que sea claro, completo y coherente con el funcionamiento real del programa `input.py -> pre.py -> algoritmo.py`)*[cite: 6].
+*Imagen a insertar de la imagen del diagrama de flujo
 
 ## 5. Resultados
 El sistema permite ingresar datos, interactuar con el usuario y ejecutar parcialmente (paso a paso) o totalmente el algoritmo[cite: 6]. Como resultado, la aplicación visualiza en tiempo real las etiquetas activas y, al finalizar, devuelve la red particionada:
