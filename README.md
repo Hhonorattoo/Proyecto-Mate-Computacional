@@ -1,45 +1,61 @@
-# Proyecto de Matemática Computacional: Algoritmo de Ford-Fulkerson
+# 🌊 Simulador Interactivo: Algoritmo de Ford-Fulkerson
 
-## 1. Introducción
-El problema del flujo máximo es un concepto fundamental en la optimización de redes, con aplicaciones prácticas cruciales en el transporte de recursos, telecomunicaciones y logística. Este proyecto presenta el desarrollo de una herramienta gráfica e interactiva diseñada para modelar redes y resolver este problema de manera didáctica. A través de este documento, se detalla el contenido del informe y el funcionamiento del sistema, despertando el interés en cómo las matemáticas computacionales pueden simular y resolver cuellos de botella en tiempo real.
+Un simulador gráfico e interactivo desarrollado en Python para modelar redes de flujo y visualizar el cálculo del **Flujo Máximo** y el **Corte Mínimo** utilizando el algoritmo de Ford-Fulkerson.
 
-## 2. Objetivo General
-**Desarrollar** una aplicación interactiva en Python que permita modelar grafos dirigidos, ingresar datos de forma dinámica y ejecutar paso a paso el algoritmo de Ford-Fulkerson, con el fin de hallar el flujo máximo y el corte mínimo de la red de manera visual y comprobable.
+Este proyecto permite a estudiantes, profesores y entusiastas de las matemáticas computacionales comprender paso a paso cómo se construyen las redes residuales y cómo se identifican los caminos aumentantes en tiempo real.
 
-## 3. Marco Metodológico y Desarrollo del Código
-El algoritmo utilizado es el de **Ford-Fulkerson**, el cual resuelve el problema iterando sobre la red para encontrar "caminos aumentantes" desde el nodo fuente ($s$) hasta el nodo sumidero ($t$). Sus etapas principales incluyen:
-1. **Etiquetado (Búsqueda BFS):** Se evalúan las aristas hacia adelante (con capacidad residual) y hacia atrás (con flujo que se puede devolver) asignando etiquetas a los nodos, incluyendo predecesor, signo e incremento.
-2. **Actualización de flujo:** Al encontrar un camino, se calcula el cuello de botella (flujo máximo posible por esa ruta) y se actualiza el flujo del sistema.
-3. **Corte Mínimo:** Cuando el sumidero ya no puede ser etiquetado, el algoritmo termina y determina qué aristas saturadas dividen la red, confirmando el flujo máximo.
+## ✨ Características Principales
 
-### Librerías Utilizadas
-El programa presenta un avance funcional significativo, permitiendo interactuar con el usuario y ejecutar el algoritmo de manera gráfica. Se utilizaron las siguientes librerías principales:
-* **Python:** Lenguaje de programación base.
-* **NetworkX:** Utilizada para la creación de la estructura del grafo dirigido, almacenamiento de nodos, aristas, capacidades y verificación de grafos acíclicos.
-* **Matplotlib:** Implementada para renderizar la interfaz gráfica, dibujar el progreso del algoritmo, cambiar colores de los nodos (fuente, sumidero, etiquetados) y manejar los botones de interacción.
-* **Tkinter:** Usada para las ventanas emergentes que permiten recolectar los datos iniciales, como el número de nodos (entre 7 y 16) y el modo de generación manual o automático.
+* **Generación de Grafos (7 a 16 nodos):** Crea redes de flujo de manera totalmente manual (dibujando aristas y asignando capacidades) o genera redes aleatorias de forma automática.
+* **Soporte Multifuente y Multisumidero:** Inyección automática de nodos ficticios (súper-fuente y súper-sumidero) para resolver problemas logísticos complejos.
+* **Prevención de Ciclos:** Validación en tiempo real durante la edición manual para garantizar grafos dirigidos acíclicos (DAG) si la configuración lo requiere.
+* **Ejecución Paso a Paso:** Controla el avance del algoritmo con un clic. Observa la búsqueda BFS, el etiquetado de vértices y la actualización de cuellos de botella ($\Delta t$).
+* **Visualización de Red Residual:** Representación gráfica de las aristas directas (azul) y las aristas de flujo inverso (magenta punteado) para devolver flujo.
+* **Teorema Max-Flow / Min-Cut:** Al finalizar, el programa resalta en rojo grueso el corte mínimo que particiona la red (Conjuntos $S$ y $T$) y confirma el flujo máximo alcanzado.
+* **Bitácora Integrada:** Panel lateral que documenta cada camino aumentante utilizado y las capacidades modificadas en el proceso.
 
-### Estructura de Módulos
-El código se estructuró en tres módulos fundamentales para asegurar su legibilidad y cumplir con los requerimientos del proyecto:
-* `input.py`: Gestiona la interfaz de inicio y la captura de parámetros iniciales mediante ventanas de Tkinter.
-* `pre.py`: Editor interactivo donde el usuario define manualmente las conexiones, valida que exista camino entre fuente y sumidero, y en caso de haber múltiples orígenes o destinos, inyecta automáticamente nodos ficticios (súper-fuente y súper-sumidero) con capacidades simuladas infinitas.
-* `algoritmo.py`: Contiene el motor matemático de Ford-Fulkerson implementado como un generador, controlando los pasos de ejecución (BFS, reconstrucción de camino, actualización) y el renderizado del panel lateral informativo con el historial de rutas.
+## 🛠️ Tecnologías Utilizadas
 
-## 4. Diagrama de Flujo
-*(Nota: Insertar aquí la figura del diagrama de flujo formateada según normas APA, incluyendo número de figura, título descriptivo y nota explicativa en la parte inferior, que represente el ciclo de inicio, edición gráfica, validación de ciclos y ejecución paso a paso del algoritmo)*.
+* **Python 3.x** - Lenguaje base.
+* **NetworkX** - Lógica de estructuras de datos para grafos dirigidos y validación interna.
+* **Matplotlib** - Renderizado interactivo del motor gráfico (nodos, aristas, layouts y eventos de clic).
+* **Tkinter** - Interfaces gráficas nativas para la recolección de parámetros iniciales y pop-ups.
+* **NumPy** - Operaciones espaciales para el cálculo de distancias al hacer clic en los nodos.
 
-## 5. Resultados
-El sistema permite ingresar datos, interactuar con el usuario y ejecutar parcialmente (paso a paso) o totalmente el algoritmo. Como resultado, la aplicación visualiza en tiempo real las etiquetas activas y, al finalizar, devuelve la red particionada:
-* Muestra el valor cuantitativo del **Flujo Máximo** calculado por el motor propio y verificado de forma silenciosa contra la función nativa de NetworkX.
-* Identifica visualmente (con flechas rojas gruesas) las aristas saturadas correspondientes al **Corte Mínimo**.
-* Imprime en el panel lateral los conjuntos $S$ (verde) y $T$ (rojo), junto con el historial completo de rutas utilizadas.
+## ⚙️ Instalación y Requisitos
 
-## 6. Conclusiones
-* Se logró desarrollar con éxito una herramienta que cumple con las funcionalidades principales previstas, permitiendo evaluar redes desde 7 hasta 16 nodos de forma manual o automática, logrando así el objetivo general del proyecto.
-* La separación gráfica por colores, el uso de nodos ficticios para múltiples fuentes/sumideros, y la ejecución controlada (botón de "Siguiente Paso") demostró ser un método sumamente efectivo para comprender la actualización del flujo y el comportamiento de la red residual.
+Asegúrate de tener Python instalado en tu sistema. Luego, instala las dependencias necesarias ejecutando el siguiente comando en tu terminal:
 
-## 7. Instrucciones de Ejecución
-Para iniciar el proyecto, asegúrese de tener instaladas las dependencias requeridas (`networkx`, `matplotlib`, `numpy`) y ejecute el módulo principal:
+```bash
+pip install networkx matplotlib numpy
+```
+
+## 🚀 Cómo usar el simulador
+
+1. Clona este repositorio o descarga los archivos fuente.
+2. Abre una terminal en la carpeta del proyecto.
+3. Ejecuta el archivo principal:
+
 ```bash
 python input.py
 ```
+
+4. **Menú de Inicio:** Introduce un nombre para tu red y elige el modo (1 para Manual, 2 para Automático). Si es manual, ingresa cuántos nodos deseas (entre 7 y 16).
+5. **Editor de Grafo:** 
+   * Selecciona tus fuentes (color verde) y sumideros (color naranja).
+   * Haz clic en un nodo origen y luego en un nodo destino para crear una arista.
+   * Ingresa la capacidad cuando el sistema te lo pida.
+   * Haz clic en "Iniciar Algoritmo" cuando la red esté lista.
+6. **Simulación:** Utiliza el botón "Siguiente Paso" para ver la magia de Ford-Fulkerson en acción.
+
+## 📂 Estructura del Proyecto
+
+El código está modularizado bajo una arquitectura de *pipeline* para separar la captura de datos del motor de renderizado:
+
+* `input.py`: Punto de entrada de la aplicación. Maneja la interfaz gráfica inicial con Tkinter y captura los parámetros base.
+* `pre.py`: Motor de edición espacial. Carga el entorno de Matplotlib, procesa los eventos de ratón para dibujar conexiones, inyecta nodos ficticios y valida que el grafo sea resoluble.
+* `algoritmo.py`: Contiene el generador matemático de Ford-Fulkerson. Maneja la máquina de estados del programa, actualiza los colores, flujos y capacidades, y controla el historial de la bitácora.
+
+## 📝 Licencia
+
+Este proyecto fue desarrollado con fines académicos. Siéntete libre de clonarlo, estudiarlo y modificarlo.
