@@ -37,7 +37,7 @@ def generarGrafoAleatorio(grafo, densidad=0.15):
         for j in range(i + 2, len(nodos)):
             if random.random() < densidad:
                 grafo.add_edge(nodos[i], nodos[j], capacity=random.randint(1, 20))
-    return nodos[0], nodos[-1]
+    return [nodos[0], nodos[-1]]
 
 
 def nodoMasCercano(x, y, posDict, maxDistancia=0.12):
@@ -59,8 +59,8 @@ class EditorGrafo:
         self.axis = axis
         self.axisTexto = axisTexto
 
-        self.nodoS = nodoS
-        self.nodoT = nodoT
+        self.nodosS = nodoS if nodoS is not None else []
+        self.nodosT = nodoT if nodoT is not None else []
         self.nodoSeleccionado = None
         # cada entrada: (u, v, capacidadAnterior); capacidadAnterior es None si la arista era nueva
         self.historial = historial if historial is not None else []
@@ -70,6 +70,12 @@ class EditorGrafo:
         self.timers = []         # se guardan para que no los borre el recolector de basura
         self.botones = []        # idem con los botones
         self.resultado = None    # (grafo, nodoS, nodoT, pos) al pulsar "Iniciar Algoritmo"
+
+        self.fase_seleccion = "FUENTE" # Controla qué estamos seleccionando ('FUENTE', 'SUMIDERO', 'EDICION')
+
+        # Si ya vienen nodos definidos (modo automático), pasamos directo a edición
+        if self.nodosS and self.nodosT:
+            self.fase_seleccion = "EDICION"
 
         self.crearBotones()
         fig.canvas.mpl_connect('button_press_event', self.manejarClics)
@@ -87,6 +93,12 @@ class EditorGrafo:
             timer.stop()
 
     def crearBotones(self):
+        self.btn_confirmar_s = Button(self.fig.add_axes([0.04, 0.12, 0.21, 0.06]), 'Confirmar Fuentes', color='lightgreen', hovercolor='lime')
+        self.btn_confirmar_s.on_clicked(self.confirmarFuentes)
+        
+        self.btn_confirmar_t = Button(self.fig.add_axes([0.27, 0.12, 0.21, 0.06]), 'Confirmar Sumideros', color='darkorange', hovercolor='orange')
+        self.btn_confirmar_t.on_clicked(self.confirmarSumideros)
+
         definiciones = [
             ([0.04, 0.05, 0.21, 0.06], 'Limpiar última arista', 'lightgray', 'yellow', self.limpiarConexiones),
             ([0.27, 0.05, 0.21, 0.06], 'Reasignar s / t', 'lightgray', 'yellow', self.reasignar),
@@ -97,6 +109,20 @@ class EditorGrafo:
             boton = Button(self.fig.add_axes(rect), texto, color=color, hovercolor=hover)
             boton.on_clicked(accion)
             self.botones.append(boton)
+
+    def confirmarFuentes(self, event):
+        if not self.nodosS:
+            self.mostrarMensaje("Debes seleccionar al menos una fuente", 'red')
+            return
+        self.fase_seleccion = "SUMIDERO"
+        self.dibujar()
+
+    def confirmarSumideros(self, event):
+        if not self.nodosT:
+            self.mostrarMensaje("Debes seleccionar al menos un sumidero", 'red')
+            return
+        self.fase_seleccion = "EDICION"
+        self.dibujar()
 
     def mostrarMensaje(self, texto, color):
         """Muestra un mensaje 3 segundos en el título SIN bloquear la ventana (reemplaza plt.pause)."""
@@ -123,13 +149,16 @@ class EditorGrafo:
         self.axisTexto.clear()
         self.axisTexto.axis('off')
 
+        self.btn_confirmar_s.ax.set_visible(self.fase_seleccion == "FUENTE")
+        self.btn_confirmar_t.ax.set_visible(self.fase_seleccion == "SUMIDERO")
+
         colores = []
         for n in grafo.nodes:
             if n == self.nodoSeleccionado:
                 colores.append('yellow')
-            elif n == self.nodoS:
+            elif n in self.nodosS:
                 colores.append('limegreen')
-            elif n == self.nodoT:
+            elif n in self.nodosT:
                 colores.append('darkorange')
             else:
                 colores.append('cyan')
@@ -159,21 +188,21 @@ class EditorGrafo:
         if self.mensaje is not None:
             texto, color = self.mensaje
             axis.set_title(texto, color=color, fontweight='bold', fontsize=10)
-        elif self.nodoS is None:
-            axis.set_title("PASO 1: Haz clic en un nodo para definir la FUENTE (s)",
+        elif self.fase_seleccion == "FUENTE":
+            axis.set_title("PASO 1: Selecciona uno o más nodos FUENTE (s) y presiona Confirmar",
                            color='green', fontweight='bold', fontsize=10)
-        elif self.nodoT is None:
-            axis.set_title(f"Fuente (s): {self.nodoS} | PASO 2: Clic para definir el SUMIDERO (t)",
+        elif self.fase_seleccion == "SUMIDERO":
+            axis.set_title(f"Fuentes: {', '.join(self.nodosS)} | PASO 2: Selecciona uno o más nodos SUMIDERO (t)",
                            color='darkorange', fontweight='bold', fontsize=10)
         else:
-            axis.set_title(f"Fuente (s): {self.nodoS} | Sumidero (t): {self.nodoT}\n"
+            axis.set_title(f"Fuentes: {', '.join(self.nodosS)} | Sumideros: {', '.join(self.nodosT)}\n"
                            "Clic 1: Origen | Clic 2: Destino (crear arista)",
                            color='black', fontsize=10)
 
         # Panel lateral: aristas en filas compactas para que quepan con 16 nodos
         textoPanel = "--- ESTADO DEL GRAFO ---\n"
-        textoPanel += f"Fuente (s): {self.nodoS if self.nodoS else 'Pendiente'}\n"
-        textoPanel += f"Sumidero (t): {self.nodoT if self.nodoT else 'Pendiente'}\n\n"
+        textoPanel += f"Fuente (s): {self.nodosS if self.nodosS else 'Pendiente'}\n"
+        textoPanel += f"Sumidero (t): {self.nodosT if self.nodosT else 'Pendiente'}\n\n"
         textoPanel += "Aristas (capacidad):\n"
 
         aristas = [f"{u}->{v}:{c}" for u, v, c in grafo.edges(data='capacity')]
@@ -207,27 +236,29 @@ class EditorGrafo:
 
         self.mensaje = None
 
-        if self.nodoS is None:
-            self.nodoS = nodo
-            print(f"Nodo Fuente (s) asignado: {nodo}")
-
-        elif self.nodoT is None:
-            if nodo != self.nodoS:
-                self.nodoT = nodo
-                print(f"Nodo Sumidero (t) asignado: {nodo}")
+        if self.fase_seleccion == "FUENTE":
+            if nodo in self.nodosS:
+                self.nodosS.remove(nodo)
             else:
-                self.mostrarMensaje("El sumidero (t) no puede ser igual a la fuente (s)", 'red')
+                self.nodosS.append(nodo)
+
+        elif self.fase_seleccion == "SUMIDERO":
+            if nodo in self.nodosS:
+                self.mostrarMensaje("Un sumidero no puede ser una fuente", 'red')
                 return
+            if nodo in self.nodosT:
+                self.nodosT.remove(nodo)
+            else:
+                self.nodosT.append(nodo)
 
-        elif self.nodoSeleccionado is None:
-            self.nodoSeleccionado = nodo
-            print(f"Origen seleccionado: {nodo}")
-
-        else:
-            origen = self.nodoSeleccionado
-            self.nodoSeleccionado = None
-            if origen != nodo:
-                self.crearArista(origen, nodo)
+        elif self.fase_seleccion == "EDICION":
+            if self.nodoSeleccionado is None:
+                self.nodoSeleccionado = nodo
+            else:
+                origen = self.nodoSeleccionado
+                self.nodoSeleccionado = None
+                if origen != nodo:
+                    self.crearArista(origen, nodo)
 
         self.dibujar()
 
@@ -250,13 +281,21 @@ class EditorGrafo:
         print(f"Arista creada: {u} -> {v} con capacidad {capacidad}")
 
     def validarGrafo(self):
-        """Devuelve un texto de error, o None si el grafo está listo."""
-        if self.nodoS is None or self.nodoT is None:
-            return "Primero define la fuente (s) y el sumidero (t)."
+        if not self.nodosS or not self.nodosT:
+            return "Primero define las fuentes (s) y los sumideros (t)."
         if not PERMITIR_CICLOS and not nx.is_directed_acyclic_graph(self.grafo):
             return "El grafo tiene ciclos. Elimina alguna arista."
-        if not nx.has_path(self.grafo, self.nodoS, self.nodoT):
-            return f"No existe camino de {self.nodoS} a {self.nodoT}. Agrega aristas."
+        
+        # Validar que exista al menos un camino desde ALGUNA fuente hacia ALGÚN sumidero
+        hay_camino = False
+        for s in self.nodosS:
+            for t in self.nodosT:
+                if nx.has_path(self.grafo, s, t):
+                    hay_camino = True
+                    break
+        if not hay_camino:
+             return "No existe camino entre ninguna fuente y sumidero. Agrega aristas."
+             
         return None
 
     def verificarGrafo(self, event):
@@ -272,7 +311,31 @@ class EditorGrafo:
             messagebox.showwarning("Error", error + "\nCorrige antes de iniciar.",
                                    parent=self.ventana())
             return
-        self.resultado = (self.grafo, self.nodoS, self.nodoT, self.pos)
+        
+        # --- INYECCIÓN DE NODOS FICTICIOS (SUPER-FUENTE Y SUPER-SUMIDERO) ---
+        nodoS_final = self.nodosS[0]
+        nodoT_final = self.nodosT[0]
+        
+        if len(self.nodosS) > 1:
+            self.grafo.add_node('S_Ficticia')
+            # Posicionamos el nodo ficticio ligeramente a la izquierda del grafo
+            min_x = min([p[0] for p in self.pos.values()])
+            self.pos['S_Ficticia'] = np.array([min_x - 0.2, 0])
+            for s in self.nodosS:
+                # Capacidad infinita simulada con un número muy alto para evitar bugs matemáticos
+                self.grafo.add_edge('S_Ficticia', s, capacity=99999) 
+            nodoS_final = 'S_Ficticia'
+            
+        if len(self.nodosT) > 1:
+            self.grafo.add_node('T_Ficticia')
+            # Posicionamos el nodo ficticio ligeramente a la derecha del grafo
+            max_x = max([p[0] for p in self.pos.values()])
+            self.pos['T_Ficticia'] = np.array([max_x + 0.2, 0])
+            for t in self.nodosT:
+                self.grafo.add_edge(t, 'T_Ficticia', capacity=99999)
+            nodoT_final = 'T_Ficticia'
+            
+        self.resultado = (self.grafo, nodoS_final, nodoT_final, self.pos)
         plt.close(self.fig)
 
     def limpiarConexiones(self, event):
@@ -293,10 +356,11 @@ class EditorGrafo:
         self.dibujar()
 
     def reasignar(self, event):
-        self.nodoS = None
-        self.nodoT = None
+        self.nodosS = []
+        self.nodosT = []
         self.nodoSeleccionado = None
         self.mensaje = None
+        self.fase_seleccion = "FUENTE"
         self.dibujar()
 
 
